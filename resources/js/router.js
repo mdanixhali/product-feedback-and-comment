@@ -1,6 +1,5 @@
 import { createRouter, createWebHistory } from "vue-router";
 
-import AppLayout from './Layouts/AppLayout.vue';
 import FeedbackForm from './Components/Feedback/Form.vue';
 import FeedbackList from './Components/Feedback/Index.vue';
 import FeedbackView from './Components/Feedback/View.vue';
