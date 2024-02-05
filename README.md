@@ -1,6 +1,6 @@
 ## System Requirements
     - PHP: 8.1.10
-    - Laravel:  10.42.0
+    - Laravel: 10.42.0
     - Vue: 3.4.0
     - Node: 18.8.0
 
@@ -9,7 +9,7 @@
 1. **Cloning the Project:** 
     - git clone https://github.com/mdanixhali/product-feedback-and-comment.git
 
-2.** Navigate to the project directory:**
+2. ** Navigate to the project directory:**
     - cd product-feedback-and-comment
 
 3. **Installing Laravel Dependencies:**
