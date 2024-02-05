@@ -9,7 +9,7 @@
 1. **Cloning the Project:** 
     - git clone https://github.com/mdanixhali/product-feedback-and-comment.git
 
-2. ** Navigate to the project directory:**
+2. **Navigate to the project directory:**
     - cd product-feedback-and-comment
 
 3. **Installing Laravel Dependencies:**
