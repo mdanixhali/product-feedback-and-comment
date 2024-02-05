@@ -29,8 +29,8 @@
                 </button>
                 <div class="collapse navbar-collapse bg-white" id="navbarCollapse">
                     <div class="navbar-nav mx-auto" v-if="isAuthenticated">
-                        <router-link to="/feedback/create" class="nav-item nav-link">Submit Feedback</router-link>
-                        <router-link to="/feedback" class="nav-item nav-link">Feedback</router-link>
+                        <router-link to="/feedback/create" class="nav-item nav-link" :class="routePath === '/feedback/create' ? 'active' : ''">Submit Feedback</router-link>
+                        <router-link to="/feedback" class="nav-item nav-link" :class="routePath === '/feedback' || pageName === 'view' ? 'active' : ''">Feedback</router-link>
                     </div>
                     <div class="nav-item dropdown" v-if="isAuthenticated">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">{{ name }}</a>
@@ -60,6 +60,9 @@ export default {
         pageName() {
             return this.$route.meta.name;
         },
+        routePath(){
+            return this.$route.path;
+        }
     },
     data() {
         return {

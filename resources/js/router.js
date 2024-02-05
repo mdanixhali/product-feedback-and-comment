@@ -59,7 +59,8 @@ const router = createRouter({
             component: FeedbackView,
             meta: {
                 title: 'IKONIC | View Feedback & Comment',
-                requiresAuth: true
+                requiresAuth: true,
+                name: 'view',
             },
         },
         {
