@@ -1,4 +1,9 @@
 <template>
+    <div v-if="loading" id="spinner"
+        class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
+        <div class="spinner-grow text-primary" role="status"></div>
+    </div>
+
     <!-- Single Page Header start -->
     <div class="container-fluid page-header py-5">
         <h1 class="text-center text-white display-6">Product Feedback</h1>
@@ -84,17 +89,20 @@ export default {
             url: this.$baseUrl + '/api/feedback',
             formIsValid: true,
             errors: {},
-            msg: 'Something went wrong. Please refresh the page and try again.'
+            msg: 'Something went wrong. Please refresh the page and try again.',
+            loading: false,
         }
     },
     methods: {
         async submitForm() {
+            let msg = 'Please review the form and fix the errors before submitting.';
             this.errors = {};
             this.validateForm();
             if (!this.formIsValid) {
                 this.$toast.error(msg);
                 return;
             }
+            this.loading = true;
             const response = await fetch(this.url, {
                 method: 'POST',
                 headers: {
@@ -109,9 +117,11 @@ export default {
                 if (!response.ok) {
                     this.$toast.error(responseData.message || this.msg);
                     this.errors = responseData.errors;
+                    this.loading = false;
                     return;
                 }
                 this.$toast.success(responseData.message);
+                this.loading = false;
                 this.resetForm();
             } catch (error) {
                 this.$toast.error(this.msg);
@@ -142,6 +152,7 @@ export default {
                 description: null,
             };
             this.formIsValid = true;
+            this.loading = false;
             this.errors = {};
         },   
     },

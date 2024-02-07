@@ -1,4 +1,9 @@
 <template>
+  <div v-if="loading" id="spinner"
+        class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
+        <div class="spinner-grow text-primary" role="status"></div>
+    </div>
+
   <div class="container-fluid contact py-5 mt-10">
     <div class="row py-5 justify-content-center">
       <div class="col-lg-5 p-5 bg-light rounded">
@@ -38,6 +43,7 @@ export default {
       password: null,
       remember: false,
       formIsValid: true,
+      loading: false,
       url: this.$baseUrl + '/api/auth/login',
     }
   },
@@ -48,7 +54,7 @@ export default {
         this.$toast.error('A valid email address and/or password is missing.');
         return;
       }
-
+      this.loading = true;
       const response = await fetch(this.url, {
         method: 'POST',
         headers: {
@@ -66,17 +72,20 @@ export default {
 
         if (!response.ok) {
           this.$toast.error(responseData.message);
+          this.loading = false;
           return;
         }
-
+        
         this.$store.commit('setUser', {
           token: responseData.accessToken,
           user: responseData.user,
         });
-
+        
+        this.loading = false;
         this.$toast.success('Sign in successfully.');
         this.$router.push('/feedback/create');
       } catch (error) {
+        this.loading = false;
         csrfToken.refreshCSRFToken();
         this.$toast.error('Something went wrong. Please check your credentials and try again.');
       }

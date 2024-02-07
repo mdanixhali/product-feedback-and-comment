@@ -189,6 +189,7 @@ export default {
                 this.shouldShowComments = true;
                 this.$refs.commentEditorRef.innerHTML = 'Your comment...';
                 this.updateComments(responseData.comment);
+                this.updateData = null;
             } catch (error) {
                 this.loading = false;
                 this.$toast.error(msg);
