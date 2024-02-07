@@ -1,20 +1,6 @@
 <template>
-    <div v-if="loading" id="spinner"
-        class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
-
-    <!-- Single Page Header start -->
-    <div class="container-fluid page-header py-5">
-        <h1 class="text-center text-white display-6">View Feedback</h1>
-        <ol class="breadcrumb justify-content-center mb-0">
-            <li class="breadcrumb-item"><router-link to="/feedback/create">Home</router-link></li>
-            <li class="breadcrumb-item"><router-link to="/feedback">Feedback</router-link></li>
-            <li class="breadcrumb-item active text-white">View</li>
-        </ol>
-    </div>
-    <!-- Single Page Header End -->
-
+    <Preloader :loading="loading" />
+    <Breadcrumb :title="'View Feedback'" />
 
     <!-- Contact Start -->
     <div class="container-fluid contact py-5">
@@ -94,32 +80,25 @@
             </div>
         </div>
     </div>
-
-    <!-- Modal -->
-    <div class="modal fade" id="deleteFeedback" tabindex="-1" role="dialog" aria-labelledby="deleteFeedbackLabel"
-        aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLabel">Confirmation</h5>
-                    <button class="btn btn-md rounded-circle bg-light border" @click="hideShowModal(false)">
-                        <i class="fa fa-times text-danger"></i>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    Are you sure you want to delete this feedback? If so, this action will also remove associated comments.
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" @click="hideShowModal(false)">Close</button>
-                    <button type="button" class="btn btn-danger" @click="deleteFeedback">Delete</button>
-                </div>
-            </div>
-        </div>
-    </div>
+    <ConfirmationModal 
+        v-if="shouldShowModal" 
+        :shouldShowModal="shouldShowModal" 
+        @hideShowModal="hideShowModal" 
+        @deleteFeedback="deleteFeedback" 
+    />
 </template>
 <script>
-import csrfToken from '../../Common/csrfToken.js';
+import httpRequest from '../../Common/httpRequest.js';
+import Preloader from '../../Common/Preloader.vue';
+import Breadcrumb from '../../Common/Breadcrumb.vue';
+import ConfirmationModal from '../../Common/ConfirmationModal.vue';
 export default {
+    emits: ['deleteFeedback', 'hideShowModal'],
+    components:{
+        Preloader,
+        Breadcrumb,
+        ConfirmationModal,
+    },
     data() {
         return {
             url: this.$baseUrl + '/api/comment/' + this.$route.params.id,
@@ -134,31 +113,18 @@ export default {
             showMentionList: false,
             mentionList: [],
             updateData: null,
-            msg: 'Something went wrong. Please refresh the page and try again.',
             typingTimer: null,
             doneTypingInterval: 500,
+            shouldShowModal: false,
         }
     },
     methods: {
         async getComments() {
             this.loading = true;
-            this.shouldShowComments = false;
             this.commments = [];
-            const response = await fetch(this.url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            try {
-                const responseData = await response.json();
-                this.comments = responseData;
-                this.loading = false;
-                this.shouldShowComments = true;
-            } catch (error) {
-                this.loading = false;
-                this.$toast.error(this.msg);
-            }
+            const responseData = await httpRequest.send(this.url, 'GET', this.$toast);
+            this.comments = responseData;
+            this.loading = false;
         },
         hideShowInput(i) {
             this.shouldAddComment = i;
@@ -171,29 +137,16 @@ export default {
                 url += `/${this.updateData.commentId}`;
                 method = 'PUT';
             }
-            const response = await fetch(url, {
-                method: method,
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken.t,
-                },
-                body: JSON.stringify({
-                    comment: this.$refs.commentEditorRef.innerHTML,
-                    feedback_id: this.feedback.id,
-                }),
-            });
-            try {
-                const responseData = await response.json();
-                this.loading = false;
-                this.$toast.success(responseData.message || this.msg);
-                this.shouldShowComments = true;
-                this.$refs.commentEditorRef.innerHTML = 'Your comment...';
-                this.updateComments(responseData.comment);
-                this.updateData = null;
-            } catch (error) {
-                this.loading = false;
-                this.$toast.error(msg);
-            }
+            const body = {
+                comment: this.$refs.commentEditorRef.innerHTML,
+                feedback_id: this.feedback.id,
+            };
+            const responseData = await httpRequest.send(url, method, this.$toast, body);
+            this.loading = false;
+            this.shouldShowComments = true;
+            this.$refs.commentEditorRef.innerHTML = 'Your comment...';
+            this.updateComments(responseData.comment);
+            this.updateData = null;
         },
         updateComments(comment) {
             comment.user = {
@@ -244,21 +197,10 @@ export default {
             if(!word) return;
             this.loading = true;
             let url = this.$baseUrl + '/api/user?keyword=' + word;
-            const response = await fetch(url, {
-                method: 'GET',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-            });
-            try {
-                const responseData = await response.json();
-                this.showMentionList = true;
-                this.loading = false;
-                this.mentionList = responseData;
-            } catch (error) {
-                this.loading = false;
-                this.$toast.error(msg);
-            }
+            const responseData = await httpRequest.send(url, 'GET', this.$toast);
+            this.showMentionList = true;
+            this.loading = false;
+            this.mentionList = responseData;
         },
         mentionUser(user) {
             this.$nextTick(() => {
@@ -276,27 +218,14 @@ export default {
         async deleteComment(id, index) {
             this.loading = true;
             let url = this.$baseUrl + '/api/comment/' + id;
-            const response = await fetch(url, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken.t,
-                },
-                body: JSON.stringify({
-                    comment_id: id,
-                }),
-            });
-            try {
-                const responseData = await response.json();
-                this.loading = false;
-                this.$toast.success(responseData.message || this.msg);
-                this.comment = null;
-                this.shouldShowComments = true;
-                this.comments.splice(index, 1);
-            } catch (error) {
-                this.loading = false;
-                this.$toast.error(msg);
-            }
+            const body = {
+                comment_id: id,
+            };
+            await httpRequest.send(url, 'DELETE', this.$toast, body);
+            this.loading = false;
+            this.comment = null;
+            this.shouldShowComments = true;
+            this.comments.splice(index, 1);
         },
         editComment(comment, index) {
             this.$nextTick(() => {
@@ -314,42 +243,13 @@ export default {
         },
         async deleteFeedback() {
             this.loading = true;
-            let fullUrl = this.$baseUrl + '/api/feedback/' + this.feedback.id;
-            let msg = 'Something went wrong. Please try again.';
-            const response = await fetch(fullUrl, {
-                method: 'DELETE',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken.t,
-                },
-            });
-            try {
-                const responseData = await response.json();
-                this.$toast.success(responseData.message);
-                $('#deleteFeedback').modal('hide');
-                this.$router.push('/feedback');
-            } catch (error) {
-                this.loading = false;
-                this.$toast.error(msg);
-            }
+            let url = this.$baseUrl + '/api/feedback/' + this.feedback.id;
+            await httpRequest.send(url, 'DELETE', this.$toast);
+            $('#deleteFeedback').modal('hide');
+            this.$router.push('/feedback');
         },
-        hideShowModal(i, id = null) {
-            if (i) {
-                this.feedbackId = id;
-                $('#deleteFeedback').modal('show');
-
-                const bodyElement = document.body;
-                if (bodyElement.classList.contains('modal-open')) {
-                    bodyElement.style.overflow = '';
-                    bodyElement.style.paddingRight = '';
-                    bodyElement.style.overflowY = 'scroll';
-                }
-                const navigationElement = document.querySelector('.main-navigation');
-                if (navigationElement) {
-                    navigationElement.style.paddingRight = '';
-                }
-            }
-            else $('#deleteFeedback').modal('hide');
+        hideShowModal(i) {
+            this.shouldShowModal = i;
         }
     },
     computed: {
@@ -360,9 +260,6 @@ export default {
     created() {
         this.feedback = this.$store.getters.feedback;
     },
-    mounted() {
-        csrfToken.refreshCSRFToken();
-    }
 }
 </script>
 <style scoped>

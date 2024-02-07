@@ -1,8 +1,6 @@
 <template>
-    <div v-if="loading" id="spinner"
-        class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
+    <Preloader :loading="loading" />
+    
     <div class="container-fluid contact py-5 mt-10">
         <div class="row py-5 justify-content-center">
             <div class="col-lg-5 p-5 bg-light rounded">
@@ -41,8 +39,12 @@
     </div>
 </template>
 <script>
-import csrfToken from '../../Common/csrfToken.js';
+import httpRequest from '../../Common/httpRequest.js';
+import Preloader from '../../Common/Preloader.vue';
 export default {
+    components:{
+        Preloader,
+    },
     data() {
         return {
             form: {
@@ -66,29 +68,19 @@ export default {
                 return;
             }
             this.loading = true;
-            const response = await fetch(this.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken.t,
-                },
-                body: JSON.stringify({
-                    name: this.form.name,
-                    email: this.form.email,
-                    password: this.form.password,
-                    password_confirmation: this.form.password_confirmation,
-                })
-            });
-            const responseData = await response.json();
-
+            const body = {
+                name: this.form.name,
+                email: this.form.email,
+                password: this.form.password,
+                password_confirmation: this.form.password_confirmation,
+            };
+            const responseData = await httpRequest.send(fullUrl, 'POST', this.$toast, body);
             if (!response.ok) {
-                this.loading = false;
-                this.$toast.error(responseData.message || msg);
                 this.errors = responseData.errors;
+                this.loading = false;
                 return;
             }
             this.loading = false;
-            this.$toast.success(responseData.message);
             this.$router.push('/login');
         },
         validateForm() {
@@ -130,10 +122,6 @@ export default {
             this.errors = {};
         },
     },
-    mounted() {
-        csrfToken.refreshCSRFToken();
-        console.log(this.$csrfToken);
-    }
 }
 
 </script>

@@ -18,6 +18,6 @@ export default {
     } else {
         console.error('CSRF token meta tag not found');
     }
-    this.t = responseData.csrfToken;
+    return responseData;
   },
 }

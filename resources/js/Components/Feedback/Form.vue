@@ -1,8 +1,5 @@
 <template>
-    <div v-if="loading" id="spinner"
-        class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
+    <Preloader :loading="loading" />
 
     <!-- Single Page Header start -->
     <div class="container-fluid page-header py-5">
@@ -77,8 +74,12 @@
     <!-- Contact End -->
 </template>
 <script>
-import csrfToken from '../../Common/csrfToken.js';
+import httpRequest from '../../Common/httpRequest.js';
+import Preloader from '../../Common/Preloader.vue';
 export default {
+    components:{
+        Preloader,
+    },
     data() {
         return {
             form: {
@@ -89,13 +90,11 @@ export default {
             url: this.$baseUrl + '/api/feedback',
             formIsValid: true,
             errors: {},
-            msg: 'Something went wrong. Please refresh the page and try again.',
             loading: false,
         }
     },
     methods: {
         async submitForm() {
-            let msg = 'Please review the form and fix the errors before submitting.';
             this.errors = {};
             this.validateForm();
             if (!this.formIsValid) {
@@ -103,29 +102,10 @@ export default {
                 return;
             }
             this.loading = true;
-            const response = await fetch(this.url, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRF-Token': csrfToken.t,
-                },
-                body: JSON.stringify(this.form)
-            });
-            try {
-                const responseData = await response.json();
-
-                if (!response.ok) {
-                    this.$toast.error(responseData.message || this.msg);
-                    this.errors = responseData.errors;
-                    this.loading = false;
-                    return;
-                }
-                this.$toast.success(responseData.message);
-                this.loading = false;
-                this.resetForm();
-            } catch (error) {
-                this.$toast.error(this.msg);
-            }
+            const responseData = await httpRequest.send(this.url, 'POST', this.$toast, this.form);
+            this.errors = responseData.errors;
+            this.loading = false;
+            this.resetForm();
         },
         validateForm() {
             this.formIsValid = true;
@@ -156,8 +136,5 @@ export default {
             this.errors = {};
         },   
     },
-    mounted() {
-        csrfToken.refreshCSRFToken();
-    }
 }
 </script>

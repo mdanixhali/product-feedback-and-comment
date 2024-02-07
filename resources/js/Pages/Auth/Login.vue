@@ -1,8 +1,5 @@
 <template>
-  <div v-if="loading" id="spinner"
-        class="show w-100 vh-100 bg-white position-fixed translate-middle top-50 start-50  d-flex align-items-center justify-content-center">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
+  <Preloader :loading="loading" />
 
   <div class="container-fluid contact py-5 mt-10">
     <div class="row py-5 justify-content-center">
@@ -35,8 +32,13 @@
   </div>
 </template>
 <script>
+import httpRequest from '../../Common/httpRequest.js';
 import csrfToken from '../../Common/csrfToken.js';
+import Preloader from '../../Common/Preloader.vue';
 export default {
+  components:{
+      Preloader,
+  },
   data() {
     return {
       email: null,
@@ -55,40 +57,22 @@ export default {
         return;
       }
       this.loading = true;
-      const response = await fetch(this.url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'X-CSRF-Token': csrfToken.t,
-        },
-        body: JSON.stringify({
-          email: this.email,
-          password: this.password,
-          remember: this.remember,
-        })
-      });
-      try {
-        const responseData = await response.json();
+      const body = {
+        email: this.email,
+        password: this.password,
+        remember: this.remember,
+      };
+      const responseData = await httpRequest.send(this.url, 'POST', this.$toast, body);
+      if(!responseData.ok) return;
 
-        if (!response.ok) {
-          this.$toast.error(responseData.message);
-          this.loading = false;
-          return;
-        }
-        
-        this.$store.commit('setUser', {
-          token: responseData.accessToken,
-          user: responseData.user,
-        });
-        
-        this.loading = false;
-        this.$toast.success('Sign in successfully.');
-        this.$router.push('/feedback/create');
-      } catch (error) {
-        this.loading = false;
-        csrfToken.refreshCSRFToken();
-        this.$toast.error('Something went wrong. Please check your credentials and try again.');
-      }
+      console.log('I am here');
+      this.$store.commit('setUser', {
+        token: responseData.accessToken,
+        user: responseData.user,
+      });
+      this.loading = false;
+      this.$toast.success('Sign in successfully.');
+      this.$router.push('/feedback/create');
     },
     validateForm() {
       this.formIsValid = true;
@@ -101,9 +85,6 @@ export default {
       return emailRegex.test(this.email);
     },
   },
-  mounted() {
-    csrfToken.refreshCSRFToken();
-  }
 }
 </script>
 <style scoped>
