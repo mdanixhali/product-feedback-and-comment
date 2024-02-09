@@ -61,10 +61,9 @@ export default {
     },
     methods: {
         async submitForm() {
-            let msg = 'Please review the form and fix the errors before submitting.';
             this.validateForm();
             if (!this.formIsValid) {
-                this.$toast.error(msg);
+                this.$toast.error('Please review the form and fix the errors before submitting.');
                 return;
             }
             this.loading = true;
@@ -74,8 +73,8 @@ export default {
                 password: this.form.password,
                 password_confirmation: this.form.password_confirmation,
             };
-            const responseData = await httpRequest.send(fullUrl, 'POST', this.$toast, body);
-            if (!response.ok) {
+            const responseData = await httpRequest.send(this.url, 'POST', this.$toast, body);
+            if (!responseData.success) {
                 this.errors = responseData.errors;
                 this.loading = false;
                 return;
