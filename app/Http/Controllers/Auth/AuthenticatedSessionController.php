@@ -27,6 +27,8 @@ class AuthenticatedSessionController extends Controller
         $tokenResult = $user->createToken('Personal Access Token');
         $token = $tokenResult->plainTextToken;
         return response([
+            'success' => true,
+            'message' => 'Login successfully!',
             'accessToken' => $token,
             'user' => $userData
         ]);

@@ -98,14 +98,17 @@ export default {
             this.errors = {};
             this.validateForm();
             if (!this.formIsValid) {
-                this.$toast.error(msg);
+                this.$toast.error('Please review the form and fix the errors before submitting.');
                 return;
             }
             this.loading = true;
             const responseData = await httpRequest.send(this.url, 'POST', this.$toast, this.form);
-            this.errors = responseData.errors;
+            if(responseData.success){
+                this.resetForm();
+            }else{
+                this.errors = responseData.errors;
+            }
             this.loading = false;
-            this.resetForm();
         },
         validateForm() {
             this.formIsValid = true;

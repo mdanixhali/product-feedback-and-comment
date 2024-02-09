@@ -33,7 +33,6 @@
 </template>
 <script>
 import httpRequest from '../../Common/httpRequest.js';
-import csrfToken from '../../Common/csrfToken.js';
 import Preloader from '../../Common/Preloader.vue';
 export default {
   components:{
@@ -63,16 +62,15 @@ export default {
         remember: this.remember,
       };
       const responseData = await httpRequest.send(this.url, 'POST', this.$toast, body);
-      if(!responseData.ok) return;
-
-      console.log('I am here');
-      this.$store.commit('setUser', {
-        token: responseData.accessToken,
-        user: responseData.user,
-      });
+      if(responseData.success){
+        this.$store.commit('setUser', {
+          token: responseData.accessToken,
+          user: responseData.user,
+        });
+        this.loading = false;
+        this.$router.push('/feedback/create');
+      }
       this.loading = false;
-      this.$toast.success('Sign in successfully.');
-      this.$router.push('/feedback/create');
     },
     validateForm() {
       this.formIsValid = true;

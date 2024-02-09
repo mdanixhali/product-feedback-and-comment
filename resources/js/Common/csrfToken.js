@@ -10,14 +10,15 @@ export default {
     });
     const responseData = await response.json();
     if (!response.ok) {
-        this.$toast.success(responseData.message || 'Failed to generate token!');
+      this.$toast.success(responseData.message || 'Failed to generate token!');
+      return;
     }
     var csrfMetaTag = document.querySelector('meta[name="csrf-token"]');
     if (csrfMetaTag) {
-        csrfMetaTag.setAttribute('content', responseData.csrfToken);
+      csrfMetaTag.setAttribute('content', responseData.csrfToken);
     } else {
-        console.error('CSRF token meta tag not found');
+      console.error('CSRF token meta tag not found');
     }
-    return responseData;
+    return responseData.csrfToken;
   },
 }

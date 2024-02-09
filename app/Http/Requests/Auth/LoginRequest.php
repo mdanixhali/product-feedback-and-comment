@@ -46,6 +46,7 @@ class LoginRequest extends FormRequest
             RateLimiter::hit($this->throttleKey());
 
             throw new HttpResponseException(response()->json([
+                'success' => false,
                 'error' => 'Unauthenticated',
                 'message' => 'Authentication failed. Please provide valid credentials.'
             ], 422));
