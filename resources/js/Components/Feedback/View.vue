@@ -123,7 +123,9 @@ export default {
             this.loading = true;
             this.commments = [];
             const responseData = await httpRequest.send(this.url, 'GET', this.$toast);
+            if(responseData.sessionExpired) return;
             this.comments = responseData;
+            this.shouldShowComments = true;
             this.loading = false;
         },
         hideShowInput(i) {
@@ -144,6 +146,7 @@ export default {
             const responseData = await httpRequest.send(url, method, this.$toast, body);
             this.loading = false;
             this.shouldShowComments = true;
+            if(responseData.sessionExpired) return;
             this.$refs.commentEditorRef.innerHTML = 'Your comment...';
             this.updateComments(responseData.comment);
             this.updateData = null;
@@ -198,8 +201,9 @@ export default {
             this.loading = true;
             let url = this.$baseUrl + '/api/user?keyword=' + word;
             const responseData = await httpRequest.send(url, 'GET', this.$toast);
-            this.showMentionList = true;
             this.loading = false;
+            if(responseData.sessionExpired) return;
+            this.showMentionList = true;
             this.mentionList = responseData;
         },
         mentionUser(user) {

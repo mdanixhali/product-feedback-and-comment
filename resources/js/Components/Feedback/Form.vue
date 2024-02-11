@@ -103,12 +103,14 @@ export default {
             }
             this.loading = true;
             const responseData = await httpRequest.send(this.url, 'POST', this.$toast, this.form);
+            this.loading = false;
+            if(responseData.sessionExpired) return;
+            
             if(responseData.success){
                 this.resetForm();
             }else{
                 this.errors = responseData.errors;
             }
-            this.loading = false;
         },
         validateForm() {
             this.formIsValid = true;

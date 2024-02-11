@@ -74,6 +74,7 @@ export default {
                 password_confirmation: this.form.password_confirmation,
             };
             const responseData = await httpRequest.send(this.url, 'POST', this.$toast, body);
+            if(responseData.sessionExpired) return;
             if (!responseData.success) {
                 this.errors = responseData.errors;
                 this.loading = false;

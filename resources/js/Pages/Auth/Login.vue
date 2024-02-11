@@ -34,6 +34,7 @@
 <script>
 import httpRequest from '../../Common/httpRequest.js';
 import Preloader from '../../Common/Preloader.vue';
+import csrfToken from "../../Common/csrfToken.js";
 export default {
   components:{
       Preloader,
@@ -68,6 +69,7 @@ export default {
           user: responseData.user,
         });
         this.loading = false;
+        csrfToken.refreshCSRFToken();
         this.$router.push('/feedback/create');
       }
       this.loading = false;

@@ -87,6 +87,7 @@ export default {
             this.loading = true;
             let fullUrl = this.url + '?page=' + this.currentPage;
             const responseData = await httpRequest.send(fullUrl, 'GET', this.$toast);
+            if(responseData.sessionExpired) return;
             this.feedbacks = responseData.data;
             this.currentPage = responseData.current_page;
             this.totalRecords = responseData.total;
@@ -105,6 +106,8 @@ export default {
             this.currentPage = 1;
             this.getFeedbacks();
             $('#deleteFeedback').modal('hide');
+            this.shouldShowModal = false;
+            this.feedbackId = null;
         },
         removeFeedbackById(feedbackId) {
             const indexToRemove = this.feedbacks.findIndex(feedback => feedback.id === feedbackId);

@@ -1,6 +1,6 @@
 export default {
-    t: null,
-    async refreshCSRFToken() {
+  t: null,
+  async refreshCSRFToken() {
     const url = window.location.origin + '/api/refresh-csrf-token'
     const response = await fetch(url, {
       method: 'GET',
@@ -19,6 +19,7 @@ export default {
     } else {
       console.error('CSRF token meta tag not found');
     }
+    this.t = responseData.csrfToken;
     return responseData.csrfToken;
   },
 }
