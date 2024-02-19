@@ -39,6 +39,7 @@
     </div>
 </template>
 <script>
+import validation from '../../Common/validation.js';
 import httpRequest from '../../Common/httpRequest.js';
 import Preloader from '../../Common/Preloader.vue';
 export default {
@@ -53,7 +54,6 @@ export default {
                 password: '',
                 password_confirmation: '',
             },
-            formIsValid: true,
             errors: {},
             url: this.$baseUrl + '/api/auth/register',
             loading: false,
@@ -61,19 +61,14 @@ export default {
     },
     methods: {
         async submitForm() {
-            this.validateForm();
-            if (!this.formIsValid) {
+            const validatedResult = validation.validate('register', this.form);
+            if (typeof validatedResult === 'object') {
                 this.$toast.error('Please review the form and fix the errors before submitting.');
+                this.errors = validatedResult;
                 return;
             }
             this.loading = true;
-            const body = {
-                name: this.form.name,
-                email: this.form.email,
-                password: this.form.password,
-                password_confirmation: this.form.password_confirmation,
-            };
-            const responseData = await httpRequest.send(this.url, 'POST', this.$toast, body);
+            const responseData = await httpRequest.send(this.url, 'POST', this.$toast, this.form);
             if(responseData.sessionExpired) return;
             if (!responseData.success) {
                 this.errors = responseData.errors;
@@ -83,34 +78,6 @@ export default {
             this.loading = false;
             this.$router.push('/login');
         },
-        validateForm() {
-            this.formIsValid = true;
-            this.errors = {};
-            if (!this.form.name) {
-                this.formIsValid = false;
-                this.errors.name = 'Name field is required';
-            }
-            if (!this.form.email || !this.validateEmail()) {
-                this.formIsValid = false;
-                this.errors.email = 'A valid email address is required';
-            }
-            if (!this.form.password || !this.validatePassword()) {
-                this.formIsValid = false;
-                this.errors.password = 'Invalid password. Must be 8-16 characters with at least one lowercase, one uppercase, and one numeric digit.';
-            }
-            if (this.form.password_confirmation !== this.form.password) {
-                this.formIsValid = false;
-                this.errors.password_confirmation = 'Please enter the same password again.';
-            }
-        },
-        validateEmail() {
-            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-            return emailRegex.test(this.form.email);
-        },
-        validatePassword() {
-            const passwordRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)[a-zA-Z\d]{8,16}$/;
-            return passwordRegex.test(this.form.password);
-        },
         resetForm() {
             this.form = {
                 name: '',
@@ -118,7 +85,6 @@ export default {
                 password: '',
                 password_confirmation: '',
             };
-            this.formIsValid = true;
             this.errors = {};
         },
     },

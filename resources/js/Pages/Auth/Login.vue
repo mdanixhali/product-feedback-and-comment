@@ -32,6 +32,7 @@
   </div>
 </template>
 <script>
+import validation from '../../Common/validation.js';
 import httpRequest from '../../Common/httpRequest.js';
 import Preloader from '../../Common/Preloader.vue';
 import csrfToken from "../../Common/csrfToken.js";
@@ -51,8 +52,8 @@ export default {
   },
   methods: {
     async submitForm() {
-      this.validateForm();
-      if (!this.formIsValid) {
+      const validatedResult = validation.validate('login', {email: this.email, passowrd: this.password});
+      if (typeof validatedResult === 'object') {
         this.$toast.error('A valid email address and/or password is missing.');
         return;
       }
@@ -73,12 +74,6 @@ export default {
         this.$router.push('/feedback/create');
       }
       this.loading = false;
-    },
-    validateForm() {
-      this.formIsValid = true;
-      if ((!this.email || !this.validateEmail()) || !this.password) {
-        this.formIsValid = false;
-      }
     },
     validateEmail() {
       const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

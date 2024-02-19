@@ -74,6 +74,7 @@
     <!-- Contact End -->
 </template>
 <script>
+import validation from '../../Common/validation.js';
 import httpRequest from '../../Common/httpRequest.js';
 import Preloader from '../../Common/Preloader.vue';
 export default {
@@ -88,7 +89,6 @@ export default {
                 description: null,
             },
             url: this.$baseUrl + '/api/feedback',
-            formIsValid: true,
             errors: {},
             loading: false,
         }
@@ -96,9 +96,10 @@ export default {
     methods: {
         async submitForm() {
             this.errors = {};
-            this.validateForm();
-            if (!this.formIsValid) {
+            const validatedResult = validation.validate('feedback', this.form);
+            if (typeof validatedResult === 'object') {
                 this.$toast.error('Please review the form and fix the errors before submitting.');
+                this.errors = validatedResult;
                 return;
             }
             this.loading = true;
@@ -112,31 +113,12 @@ export default {
                 this.errors = responseData.errors;
             }
         },
-        validateForm() {
-            this.formIsValid = true;
-            if (!this.form.title || this.countWords(this.form.title) > 100) {
-                this.formIsValid = false;
-                this.errors.title = 'Title field is required (max. 100 characters).';
-            }
-            if (!this.form.description || this.countWords(this.form.description) > 500) {
-                this.formIsValid = false;
-                this.errors.description = 'The description field is required (max. 500 characters).';
-            }
-            if (!this.form.category) {
-                this.formIsValid = false;
-                this.errors.category = 'The category field is required.';
-            }
-        },
-        countWords(text) {
-            return text.length;
-        },
         resetForm() {
             this.form = {
                 category: '',
                 title: null,
                 description: null,
             };
-            this.formIsValid = true;
             this.loading = false;
             this.errors = {};
         },   
